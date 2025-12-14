@@ -37,8 +37,9 @@ FROM results
 SELECT @MAIL_BODY = @MAIL_BODY + '</table>'
 
 EXEC msdb.dbo.sp_send_dbmail
-    @profile_name = 'OMDCMCSW001',
-    @recipients = 'DL_OwensMinor_SQLDBA@nttdata.com',
+    @profile_name = 'XXXXXXXX',
+    @recipients = 'com',
     @subject = 'PROD Failed Jobs',
     @body = @MAIL_BODY,
     @body_format='HTML'
+
