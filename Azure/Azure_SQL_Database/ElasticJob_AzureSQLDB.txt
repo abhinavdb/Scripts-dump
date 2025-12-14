@@ -1,7 +1,7 @@
 -- Create a SQL login with the specified password
 USE master;
 GO
-CREATE LOGIN elasticjob_user WITH PASSWORD = 'bBCoXtpmU3iggyj';
+CREATE LOGIN elasticjob_user WITH PASSWORD = '<REDACTED_PASSWORD>';
 GO
 
 -- Create a database user for the login in the target database
@@ -21,7 +21,7 @@ GO
 -- Create a master key in the job database
 USE [jobdatabase];
 GO
-CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'bBCoXtpmU3iggyj';
+CREATE MASTER KEY ENCRYPTION BY PASSWORD = '<REDACTED_PASSWORD>';
 GO
 
 -- Create a database scoped credential in the job database
@@ -29,7 +29,7 @@ USE [jobdatabase];
 GO
 CREATE DATABASE SCOPED CREDENTIAL ElasticJobCredential
 WITH IDENTITY = 'elasticjob_user',
-SECRET = 'bBCoXtpmU3iggyj';
+SECRET = '<REDACTED_PASSWORD>';
 GO
 
 -- Create a target group in the job database
@@ -44,7 +44,7 @@ GO
 EXEC jobs.sp_add_target_group_member
     @target_group_name = 'SQLTargetGroup',
     @target_type = 'SqlDatabase',
-    @server_name = 'denodopoc.database.windows.net',
+    @server_name = '<REDACTED_SERVER>.database.windows.net',
     @database_name = 'denodocachedb';
 GO
 
@@ -87,7 +87,7 @@ SELECT target_id
 FROM jobs.target_group_members
 WHERE target_group_name = 'SQLTargetGroup'
     AND target_type = 'SqlDatabase'
-    AND server_name = 'denodopoc.database.windows.net'
+    AND server_name = '<REDACTED_SERVER>.database.windows.net'
     AND database_name = 'denodocachedb';
 GO
 

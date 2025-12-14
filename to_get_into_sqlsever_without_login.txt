@@ -1,6 +1,6 @@
-SQLCMD -S QCSWNDWAD001\SOLARWINDS_ORION
+SQLCMD -S <REDACTED_SERVER>\<REDACTED_INSTANCE>
 
-create login test with password ='test@1234'
+create login test with password ='<REDACTED_PASSWORD>'
 GO
 
 EXEC master..sp_addsrvrolemember @loginame = N'test', @rolename = N'sysadmin'

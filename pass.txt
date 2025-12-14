@@ -1,9 +1,9 @@
 Pass
 
-email : tiwariabhinav1993@gmail.com
-Abhinav@123
+email : <REDACTED_EMAIL>
+<REDACTED_PASSWORD>
 
 sqlservercenral
-email : tiwariabhinav1993@gmail.com
-Abhinav@123
+email : <REDACTED_EMAIL>
+<REDACTED_PASSWORD>
 

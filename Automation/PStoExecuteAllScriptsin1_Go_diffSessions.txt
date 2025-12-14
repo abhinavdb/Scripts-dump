@@ -4,7 +4,7 @@ $scriptFolderPath = "F:\Script"    # Script folder path
 
 # SQL Server credentials (using SQL authentication)
 $username = "DomainAdmin"          # Username
-$password = "Contoso!0000"         # Password
+$password = "<REDACTED_PASSWORD>"         # Password
 
 # Convert the password to a SecureString
 $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
