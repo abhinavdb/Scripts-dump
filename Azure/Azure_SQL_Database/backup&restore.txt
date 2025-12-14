@@ -7,7 +7,7 @@ DECLARE @Date AS NVARCHAR(25)
 SELECT @Date = REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(VARCHAR, GETDATE(), 100), '  ', '_'), ' ', '_'), '-', '_'), ':', '_');
 SELECT @StorageAccountName = 'omniqaeastusdbstr'; --- Find this from Azure Portal
 SELECT @ContainerName = 'omnidatabase'; --- Find this from Azure Portal
-SELECT @SASKey = '?sv=2021-06-08&ss=bfqt&srt=sco&sp=rwdlacupitfx&se=2022-06-29T00:20:03Z&st=2022-06-28T16:20:03Z&spr=https&sig=XUT57359knt%2FJfuV%2BzQDdBRXGZBS20Wne0E2Yng9dU8%3D'; --- Find this from Azure Portal
+SELECT @SASKey = '<REDACTED_SAS_TOKEN>'; --- Find this from Azure Portal
 SELECT @DatabaseName = 'master';
 IF NOT EXISTS (
         SELECT *
