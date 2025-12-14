@@ -8,7 +8,7 @@ $sqlServerInstance = 'WIN-8SJJBD42KUF' # Replace with your SQL Server instance n
 $databaseName = 'MySMS'
 
 # SAS token
-$sasToken = 'sp=racwdli&st=2023-11-10T15:10:33Z&se=2026-12-30T23:10:33Z&spr=https&sv=2022-11-02&sr=c&sig=WL9SBvsj%2FPhhvs8rkRGmUOdjCr72g0eYj6C8hqOU7mc%3D'
+$sasToken = '<REDACTED_SAS_TOKEN>'
 
 # Create the Blob Storage context
 $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
@@ -53,7 +53,7 @@ $sqlServerInstance = 'WIN-8SJJBD42KUF' # Replace with your SQL Server instance n
 $databaseName = 'MySMS'
 
 # SAS token
-$sasToken = 'sp=racwdli&st=2023-11-10T15:10:33Z&se=2026-12-30T23:10:33Z&spr=https&sv=2022-11-02&sr=c&sig=WL9SBvsj%2FPhhvs8rkRGmUOdjCr72g0eYj6C8hqOU7mc%3D'
+$sasToken = '<REDACTED_SAS_TOKEN>'
 
 # Create the Blob Storage context
 $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken

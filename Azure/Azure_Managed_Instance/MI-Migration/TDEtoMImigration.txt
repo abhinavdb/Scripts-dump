@@ -30,7 +30,7 @@ BACKUP CERTIFICATE MyServerCert
 TO FILE = 'F:\newtdebackup\MyServerCert.cer'
 WITH PRIVATE KEY (
   FILE = 'F:\newtdebackup\MyServerCert.pvk',
-  ENCRYPTION BY PASSWORD = '*Lm_s$$15_1234')
+  ENCRYPTION BY PASSWORD = '<REDACTED_PASSWORD>')
 ----------------------------------------------------------------------------------
 open powershell again
 Install-Module -Name Az.Sql
@@ -45,7 +45,7 @@ Get-AzSubscription
 
 then pass account ID and PAss
 
-Select-AzSubscription 413044d3-3317-46da-a4b7-5ae90c4dabd4 --subscription ID
+Select-AzSubscription <REDACTED_SUBSCRIPTION_ID> --subscription ID
 
 -- then run the below powershell to migrate
 
@@ -55,7 +55,7 @@ Select-AzSubscription 413044d3-3317-46da-a4b7-5ae90c4dabd4 --subscription ID
 $fileContentBytes = Get-Content 'F:/newtdebackup/MyServerCert.pfx' -Encoding Byte
 $base64EncodedCert = [System.Convert]::ToBase64String($fileContentBytes)
 $securePrivateBlob = $base64EncodedCert  | ConvertTo-SecureString -AsPlainText -Force
-$password = "Lm_s$$15_123"
+$password = "<REDACTED_PASSWORD>"
 $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
 Add-AzSqlManagedInstanceTransparentDataEncryptionCertificate -ResourceGroupName "SQL-HA-RG-eastus" `
     -ManagedInstanceName "pahlamanagedinstance" -PrivateBlob $securePrivateBlob -Password $securePassword
