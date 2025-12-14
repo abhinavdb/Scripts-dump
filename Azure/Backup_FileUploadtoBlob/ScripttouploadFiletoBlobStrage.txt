@@ -13,7 +13,7 @@ $storageAccountName = "backupfullltrcontainer"
 $containerName = "backupltrfull"
 $sourceFolderPath = "F:\SQLBackup\XXXXXX\XXXXX"
 $destinationBlobPrefix = "XXXXXXXX" -- put the blob storage container name
-$sasToken = "sp=racwdli&st=2023-11-10T10:57:54Z&se=2025-09-14T18:57:54Z&spr=https&sv=2022-11-02&sr=c&sig=908e5HsP8ftM11pVrXi9TV8Ba%2FvfMJHsyiLqKSYRVCk%3D"
+$sasToken = ""
 
 # Import the Azure.Storage module
 Import-Module Az.Storage -Force
@@ -50,4 +50,5 @@ foreach ($subdirectory in $sourceSubdirectories) {
 
 
 -- use this to schedule powershell-- save the powershell script and call it via SQL Agent Job
+
 C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe C:\BackupRestoreLog\BackupCopyLog\RestoreScript.ps1
