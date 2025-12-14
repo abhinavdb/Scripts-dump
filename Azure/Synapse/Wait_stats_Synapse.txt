@@ -1,0 +1,92 @@
+
+IF OBJECT_ID('tempdb..#waits_calc') IS NOT NULL
+    DROP TABLE #waits_calc;
+
+/* ---------- 1. Build temp table ------------------------------------ */
+WITH node_uptime AS
+(
+    SELECT  osi.pdw_node_id,
+            CAST(osi.ms_ticks / 3600000.0 AS DECIMAL(10,2)) AS hours_uptime
+    FROM    sys.dm_pdw_nodes_os_sys_info AS osi
+),
+waits_raw AS
+(
+    SELECT
+        nu.pdw_node_id,
+        nu.hours_uptime,
+        ws.wait_type,
+        ws.wait_time_ms,
+        ws.waiting_tasks_count
+    FROM node_uptime                     AS nu
+    JOIN sys.dm_pdw_nodes_os_wait_stats  AS ws
+         ON nu.pdw_node_id = ws.pdw_node_id
+    WHERE  ws.wait_type IN
+          (
+              'PAGEIOLATCH_SH','PAGEIOLATCH_EX',
+              'RESOURCE_SEMAPHORE','RESOURCE_SEMAPHORE_QUERY_COMPILE',
+              'CXPACKET','CXCONSUMER','CXSYNC_PORT','CXSYNC_CONSUMER',
+              'SOS_SCHEDULER_YIELD','THREADPOOL','RESOURCE_GOVERNOR_IDLE',
+              'CMEMTHREAD','SLEEP_BPOOL_STEAL',
+              'PAGELATCH_EX','PAGELATCH_SH','PAGELATCH_UP',
+              'WRITELOG','LOGBUFFER','LOG_RATE_GOVERNOR','POOL_LOG_RATE_GOVERNOR',
+              'ASYNC_NETWORK_IO','EXECSYNC','IO_COMPLETION','SLEEP_TASK',
+              'HTBUILD','HTDELETE','HTMEMO','HTREINIT','HTREPARTITION',
+              'PWAIT_QRY_BPMEMORY','BPSORT',
+              'BTREE_INSERT_FLOW_CONTROL',
+              'IO_QUEUE_LIMIT','IO_RETRY','RESMGR_THROTTLED'
+          )
+          OR ws.wait_type LIKE 'LCK%'      -- lock waits
+)
+SELECT
+    wr.pdw_node_id,
+    wr.hours_uptime,
+    wr.wait_type,
+    description = CASE
+        WHEN wr.wait_type = 'PAGEIOLATCH_SH'                      THEN 'Disk reads into buffer'
+        WHEN wr.wait_type = 'PAGEIOLATCH_EX'                      THEN 'Disk writes from buffer'
+        WHEN wr.wait_type = 'RESOURCE_SEMAPHORE'                  THEN 'Memory grant waits'
+        WHEN wr.wait_type = 'RESOURCE_SEMAPHORE_QUERY_COMPILE'    THEN 'Memory for compile'
+        WHEN wr.wait_type IN ('CXPACKET','CXCONSUMER','CXSYNC_PORT','CXSYNC_CONSUMER')
+                                                              THEN 'Parallelism waits'
+        WHEN wr.wait_type = 'SOS_SCHEDULER_YIELD'                 THEN 'CPU scheduler waits'
+        WHEN wr.wait_type = 'THREADPOOL'                          THEN 'Worker thread exhaustion'
+        WHEN wr.wait_type = 'WRITELOG'                            THEN 'Log write stall'
+        WHEN wr.wait_type = 'IO_QUEUE_LIMIT'                      THEN 'I/O queue throttling'
+        WHEN wr.wait_type = 'IO_RETRY'                            THEN 'I/O retry throttling'
+        WHEN wr.wait_type LIKE 'LCK%'                             THEN 'Lock waits'
+        ELSE wr.wait_type
+    END,
+    hours_wait_time      = CAST(wr.wait_time_ms / 3600000.0 AS DECIMAL(38,2)),
+    waiting_tasks_count  = wr.waiting_tasks_count,
+    avg_ms_per_wait      = CAST(
+                               CASE WHEN wr.waiting_tasks_count>0
+                                    THEN wr.wait_time_ms*1.0/wr.waiting_tasks_count
+                                    ELSE 0 END AS DECIMAL(38,2))
+INTO #waits_calc
+FROM waits_raw AS wr;
+
+/* ---------- 2‑A. Pool‑wide summary (no percent_signal_waits) ------- */
+SELECT
+    wait_type,
+    MAX(description)                            AS description,
+    MAX(hours_uptime)                           AS hours_uptime,
+    CAST(SUM(hours_wait_time) AS DECIMAL(38,2)) AS hours_wait_time,
+    SUM(waiting_tasks_count)                    AS waiting_tasks_count,
+    CAST(SUM(avg_ms_per_wait * waiting_tasks_count) /
+         NULLIF(SUM(waiting_tasks_count),0)
+         AS DECIMAL(38,2))                      AS avg_ms_per_wait
+FROM #waits_calc
+GROUP BY wait_type
+ORDER BY hours_wait_time DESC;
+
+/* ---------- 2‑B. Per‑node detail ---------------------------------- */
+SELECT
+    pdw_node_id,
+    wait_type,
+    description,
+    hours_uptime,
+    hours_wait_time,
+    waiting_tasks_count,
+    avg_ms_per_wait
+FROM #waits_calc
+ORDER BY pdw_node_id, hours_wait_time DESC;

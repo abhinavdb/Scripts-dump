@@ -1,0 +1,116 @@
+using namespace System.Net
+
+# Input bindings are passed in via param block.
+param($Request, $TriggerMetadata)
+
+# Function to import module if not already loaded
+function Import-ModuleIfNotLoaded {
+    param (
+        [string]$ModuleName
+    )
+    if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
+        Write-Host "Importing module $ModuleName..."
+        Import-Module -Name $ModuleName -Force -ErrorAction Stop
+    } else {
+        Write-Host "Module $ModuleName is already loaded."
+    }
+}
+
+# Import necessary modules
+Import-ModuleIfNotLoaded -ModuleName "Az"
+Import-ModuleIfNotLoaded -ModuleName "Az.Storage"
+Import-ModuleIfNotLoaded -ModuleName "ImportExcel"
+
+# Define Azure Blob Storage parameters
+$containerName = $env:CONTAINER_NAME
+$storageAccountName = $env:STORAGE_ACCOUNT_NAME
+$localDownloadPath = "$env:TMP\"
+
+# Create Azure Storage context using system-assigned managed identity
+$context = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount
+
+try {
+    # Read the PublishRowId and PublishPostingDate from the request body
+    $rawBodyContent = $Request.Body
+    if ($rawBodyContent -is [System.Collections.Hashtable]) {
+        $bodyHashtable = $rawBodyContent
+        $rawBodyContent = $bodyHashtable | ConvertTo-Json
+    }
+    $bodyContent = $rawBodyContent | ConvertFrom-Json
+    $publishRowId = $bodyContent[0].PublishRowId
+    $publishPostingDate = $bodyContent[0].PublishPostingDate
+
+    Write-Host "Using PublishRowId: $publishRowId"
+    Write-Host "Using PublishPostingDate: $publishPostingDate"
+
+    # Construct the folder name using PublishRowId
+    $folderName = "$publishRowId`-outputs/"
+    Write-Host "Constructed folder name: $folderName"
+
+    # Use PublishPostingDate to construct the Excel file name
+    $excelFileName = "Output-Historical_Percentage_$publishPostingDate.xlsx"
+    $excelFilePath = "$localDownloadPath\$excelFileName"
+    $blobName = "$folderName$excelFileName"
+
+    # Check if the Excel file exists, and handle the case where it does not
+    try {
+        $blob = Get-AzStorageBlob -Container $containerName -Context $context -Blob $blobName
+        if ($blob) {
+            Write-Host "Deleting existing file: $blobName"
+            Remove-AzStorageBlob -Blob $blobName -Container $containerName -Context $context
+        }
+    } catch {
+        Write-Host "Excel file does not exist, continuing with CSV processing."
+    }
+
+    $blobs = Get-AzStorageBlob -Container $containerName -Prefix $folderName -Context $context
+    $csvFiles = @()
+    foreach ($blob in $blobs) {
+        if ($blob.Name.EndsWith("ds_historical_csv.csv")) {
+            $csvFiles += $blob.Name
+        }
+    }
+
+    if (-not $csvFiles) {
+        Write-Host "No CSV files found."
+        exit
+    }
+
+    Write-Host "CSV Files: `n$($csvFiles -join "`n")"
+
+    foreach ($csvFile in $csvFiles) {
+        $localFilePath = "$localDownloadPath$(Split-Path -Leaf $csvFile)"
+        try {
+            Get-AzStorageBlobContent -Blob $csvFile -Container $containerName -Destination $localFilePath -Context $context
+            $csvData = Import-Csv -Path $localFilePath
+            $worksheetName = [System.IO.Path]::GetFileNameWithoutExtension($localFilePath)
+            $csvData | Export-Excel -Path $excelFilePath -WorksheetName $worksheetName -AutoNameRange -AutoSize -ClearSheet
+            Write-Host "Data from $csvFile exported to sheet in $excelFilePath"
+            Remove-Item -Path $localFilePath
+        } catch {
+            Write-Host ("Failed to process CSV file {0}: {1}" -f $csvFile, $_.Exception.Message)
+        }
+    }
+
+    try {
+        Set-AzStorageBlobContent -File $excelFilePath -Container $containerName -Blob $blobName -Context $context
+        Write-Host "File uploaded successfully to $containerName/$blobName"
+        Remove-Item -Path $excelFilePath
+        Write-Host "Local file deleted: $excelFilePath"
+    } catch {
+        Write-Host ("Failed to upload file: {0}" -f $_.Exception.Message)
+    }
+
+    $body = "$containerName/$blobName"
+    Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+        StatusCode = [HttpStatusCode]::OK
+        Body       = $body
+    })
+} catch {
+    Write-Host "ERROR: $_"
+    $body = "Error processing request: $_"
+    Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+        StatusCode = [HttpStatusCode]::InternalServerError
+        Body       = $body
+    })
+}

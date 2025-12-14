@@ -1,0 +1,103 @@
+using namespace System.Net
+param($Request, $TriggerMetadata)
+ 
+# Function to import module if not already loaded
+function Import-ModuleIfNotLoaded {
+    param (
+        [string]$ModuleName
+    )
+    if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
+        Write-Host "Importing module $ModuleName..."
+        Import-Module -Name $ModuleName -Force -ErrorAction Stop
+    } else {
+        Write-Host "Module $ModuleName is already loaded."
+    }
+}
+ 
+# Import necessary modules
+Import-ModuleIfNotLoaded -ModuleName "Az"
+Import-ModuleIfNotLoaded -ModuleName "Az.Storage"
+ 
+# Define Azure Blob Storage parameters
+#$containerName = "foi-nav-publish"
+#$storageAccountName = "athenaglblobstorage"
+
+$containerName = $env:CONTAINER_NAME
+$storageAccountName = $env:STORAGE_ACCOUNT_NAME
+
+
+$folderName = "FOI_Nav_Publish_Historic​/"
+ 
+# Connect to the Azure Storage account
+#$context = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
+$context = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount 
+ 
+# Function to get the latest file in the specified folder based on the last modified date
+function Get-LatestFile {
+    param (
+        [string]$containerName,
+        [string]$folderName,
+        [string]$keyword,
+        $context
+    )
+    $blobs = Get-AzStorageBlob -Container $containerName -Prefix $folderName -Context $context
+    $filteredBlobs = $blobs | Where-Object { $_.Name -like "*$keyword*" }
+    if ($filteredBlobs.Count -eq 0) {
+        throw "No files found with the keyword '$keyword'"
+    }
+    $latestBlob = $filteredBlobs | Sort-Object -Property LastModified -Descending | Select-Object -First 1
+    return $latestBlob.Name
+}
+ 
+# Main script logic
+try {
+    Write-Host "Attempting to get the latest file with keyword 'Accounts'..."
+    $sourceExcelFileName = Get-LatestFile -containerName $containerName -folderName $folderName -keyword "Historical" -context $context
+    $fullFilePath = "https://$storageAccountName.blob.core.windows.net/$containerName/$sourceExcelFileName"
+   
+    Write-Host "Latest file path: $fullFilePath"
+ 
+    # Create a simple response object
+    $response = @{
+        status  = "success"
+        filePath = $fullFilePath
+    }
+ 
+    # Convert the response to JSON
+    $ResponseMessage = $response | ConvertTo-Json
+ 
+    Write-Host "Response Message: $ResponseMessage"
+ 
+    # Return the response as JSON
+    $Response = @{
+        statusCode = 200
+        headers = @{
+            "Content-Type" = "application/json"
+        }
+        body = $ResponseMessage
+    }
+    return $Response
+} catch {
+    Write-Host "Error: $_"
+ 
+    $response = @{
+        status  = "error"
+        message = $_.Exception.Message
+    }
+ 
+    # Convert the error response to JSON
+    $ResponseMessage = $response | ConvertTo-Json
+ 
+    Write-Host "Error Response Message: $ResponseMessage"
+ 
+    # Return the error response as JSON
+    $Response = @{
+        statusCode = 400
+        headers = @{
+            "Content-Type" = "application/json"
+        }
+        body = $ResponseMessage
+    }
+    return $Response
+}
+ 

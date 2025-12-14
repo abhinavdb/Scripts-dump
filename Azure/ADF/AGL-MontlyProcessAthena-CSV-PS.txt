@@ -1,0 +1,85 @@
+using namespace System.Net
+param($Request, $TriggerMetadata)
+
+# Function to import module if not already loaded
+function Import-ModuleIfNotLoaded {
+    param (
+        [string]$ModuleName
+    )
+    if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
+        Write-Host "Importing module $ModuleName..."
+        Import-Module -Name $ModuleName -Force -ErrorAction Stop
+    } else {
+        Write-Host "Module $ModuleName is already loaded."
+    }
+}
+
+# Import necessary modules
+Import-ModuleIfNotLoaded -ModuleName "Az"
+Import-ModuleIfNotLoaded -ModuleName "Az.Storage"
+Import-ModuleIfNotLoaded -ModuleName "ImportExcel"
+
+
+# Define Azure Blob Storage parameters
+$containerName = $env:CONTAINER_NAME
+$storageAccountName = $env:STORAGE_ACCOUNT_NAME
+
+$folderName = "Input/"
+$localDownloadPath = $env:TEMP  # Use Azure Functions temporary storage
+$copyFileName = "Athena_Monthly.xlsx"  # New file name for the copied file
+
+# Connect to the Azure Storage account
+$context = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount 
+
+# Function to get the latest file in the specified folder based on the last modified date
+function Get-LatestFile {
+    param (
+        [string]$containerName,
+        [string]$folderName,
+        [string]$keyword,
+        $context
+    )
+    $blobs = Get-AzStorageBlob -Container $containerName -Prefix $folderName -Context $context
+    $filteredBlobs = $blobs | Where-Object { $_.Name -like "*$keyword*" -and $_.Name -notlike "*Athena_Monthly.xlsx" -and $_.Name -notlike "*Athena_Historical.xlsx" -and $_.Name -notlike "*.csv" }
+    if ($filteredBlobs.Count -eq 0) {
+        throw "No files found with the keyword '$keyword'"
+    }
+    $latestBlob = $filteredBlobs | Sort-Object -Property LastModified -Descending | Select-Object -First 1
+    return $latestBlob.Name
+}
+
+# Function to check if a blob exists
+function Test-BlobExists {
+    param (
+        [string]$containerName,
+        [string]$blobName,
+        $context
+    )
+    $blob = Get-AzStorageBlob -Container $containerName -Blob $blobName -Context $context
+    return $blob -ne $null
+}
+
+# Main block
+try {
+    $sourceExcelFileName = Get-LatestFile -containerName $containerName -folderName $folderName -keyword "Athena" -context $context
+    Write-Output "The latest file with the keyword 'Athena' is: $sourceExcelFileName"
+    
+    # Download the latest file locally
+    $sourceExcelFilePath = Join-Path -Path $localDownloadPath -ChildPath (Split-Path -Leaf $sourceExcelFileName)
+    Get-AzStorageBlobContent -Blob $sourceExcelFileName -Container $containerName -Destination $sourceExcelFilePath -Context $context -Force
+    Write-Output "Downloaded $sourceExcelFileName to $sourceExcelFilePath"
+
+    # Check if the target file already exists and delete it if it does
+    $copyBlobPath = Join-Path -Path $folderName -ChildPath $copyFileName
+    if (Test-BlobExists -containerName $containerName -blobName $copyBlobPath -context $context) {
+        Write-Output "Blob $copyBlobPath already exists. Deleting it..."
+        Remove-AzStorageBlob -Blob $copyBlobPath -Container $containerName -Context $context -Force
+        Write-Output "Existing blob $copyBlobPath deleted."
+    }
+
+    # Upload the file with a new name
+    Set-AzStorageBlobContent -File $sourceExcelFilePath -Container $containerName -Blob $copyBlobPath -Context $context -Force
+    Write-Output "Uploaded copy as $copyBlobPath"
+} catch {
+    Write-Output "Error: $_"
+}
