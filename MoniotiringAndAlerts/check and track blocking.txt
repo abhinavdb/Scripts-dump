@@ -87,7 +87,7 @@ GO
 CREATE PROCEDURE [dbo].[CheckandTrackBlockingSessions]
 (
 	@recipients varchar(max) = 
-		'abc@abc.com;abc@abc.com'
+		'user@example.com'
 )
 AS
 
