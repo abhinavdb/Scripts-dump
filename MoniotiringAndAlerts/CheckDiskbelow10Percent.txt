@@ -93,7 +93,7 @@ VALUES (
 	1
 	,N'SQL DBA'
 	,N'Team'
-	,N'DL_OwensMinor_SQLDBA@nttdata.com'
+	,N'DBA_Team@example.com'
 	,1
 	)
 
