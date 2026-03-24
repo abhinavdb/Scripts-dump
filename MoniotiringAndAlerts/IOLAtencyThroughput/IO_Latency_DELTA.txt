@@ -220,8 +220,8 @@ BEGIN
 
     BEGIN TRY
         EXEC msdb.dbo.sp_send_dbmail
-            @profile_name = 'EDIDBAUPVC06 SQL DBMail Profile',
-            @recipients = 'abhinav.tiwari@tollgroup.com',
+            @profile_name = '<SERVER_NAME> SQL DBMail Profile',
+            @recipients = 'user@example.com',
             @subject = 'Latency Delta Alert',
             @body = @html_body,
             @body_format = 'HTML';
