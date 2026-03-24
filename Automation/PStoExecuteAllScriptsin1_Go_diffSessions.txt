@@ -1,4 +1,4 @@
-$server = "SQLserver1"             # SQL Server instance name
+$server = "<SERVER_NAME>"             # SQL Server instance name
 $database = "StackOverflow2013"    # Database name
 $scriptFolderPath = "F:\Script"    # Script folder path
 
