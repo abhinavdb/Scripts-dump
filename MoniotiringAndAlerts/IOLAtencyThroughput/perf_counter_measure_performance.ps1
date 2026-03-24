@@ -1,7 +1,7 @@
-# powershell -f perf_counter_measure_performance.ps1 -HostName DESKTOP-FH2D9SA -nSamples 5761 -nRate 15 > output_file.txt
+# powershell -f perf_counter_measure_performance.ps1 -HostName <SERVER_NAME> -nSamples 5761 -nRate 15 > output_file.txt
 # create table perfmon (dts datetime null, category sysname null, counter_name sysname null, instance sysname null, val numeric(38,8) null)
-# bcp perfmon in output_file.txt -S DESKTOP-FH2D9SA -d dba -T -c -t"," -r "\n"
-# bcp perfmon in output_file.txt -S DESKTOP-FH2D9SA -d dba -T -w -t"," -r "\n"	# IF The file is UNICODE!
+# bcp perfmon in output_file.txt -S <SERVER_NAME> -d dba -T -c -t"," -r "\n"
+# bcp perfmon in output_file.txt -S <SERVER_NAME> -d dba -T -w -t"," -r "\n"	# IF The file is UNICODE!
 
 
 param($HostName
@@ -89,7 +89,7 @@ if ($nRate -eq $null)
 
 #iex "[LocalCode.PerformanceCounterWrap]::init()"
 iex "[LocalCode.PerformanceCounterWrap]::init(""$HostName"")"
-#iex "[LocalCode.PerformanceCounterWrap]::init(""DESKTOP-FH2D9SA"")"
+#iex "[LocalCode.PerformanceCounterWrap]::init(""<SERVER_NAME>"")"
 
 #		//	Disk reads/sec + disk writes/sec = IOPS
 #		//	Disk read bytes/sec + disk write bytes/sec = throughput
