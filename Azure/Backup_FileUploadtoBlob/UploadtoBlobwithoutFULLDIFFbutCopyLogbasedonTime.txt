@@ -1,7 +1,7 @@
 $storageAccountName = "backupfullltrcontainer"
 $containerName = "backupltrfull"
 $sourceRootFolder = "F:\SQLBackup\mysmstrans"
-$destinationBlobPrefix = "aznetpocdbs01"
+$destinationBlobPrefix = "<SERVER_NAME>"
 $sasToken = "<REDACTED_SAS_TOKEN>"
 
 # Set the log file path
