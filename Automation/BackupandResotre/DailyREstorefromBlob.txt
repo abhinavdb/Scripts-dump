@@ -1,10 +1,10 @@
 # Azure Storage account and container details
 $storageAccountName = 'backupfullltrcontainer'
 $containerName = 'backupltrfull'
-$containerFolderPath = 'aznetpocdbs01/MySMS/FULL/'
+$containerFolderPath = '<SERVER_NAME>/MySMS/FULL/'
 
 # SQL Server details
-$sqlServerInstance = 'WIN-8SJJBD42KUF' # Replace with your SQL Server instance name
+$sqlServerInstance = '<SERVER_NAME>' # Replace with your SQL Server instance name
 $databaseName = 'MySMS'
 
 # SAS token
@@ -45,11 +45,11 @@ Invoke-Sqlcmd -ServerInstance $sqlServerInstance -Query $restoreCommand -QueryTi
 # Azure Storage account and container details
 $storageAccountName = 'backupfullltrcontainer'
 $containerName = 'backupltrfull'
-$containerFolderPathFull = 'aznetpocdbs01/MySMS/FULL/'
-$containerFolderPathDiff = 'aznetpocdbs01/MySMS/DIFF/'
+$containerFolderPathFull = '<SERVER_NAME>/MySMS/FULL/'
+$containerFolderPathDiff = '<SERVER_NAME>/MySMS/DIFF/'
 
 # SQL Server details
-$sqlServerInstance = 'WIN-8SJJBD42KUF' # Replace with your SQL Server instance name
+$sqlServerInstance = '<SERVER_NAME>' # Replace with your SQL Server instance name
 $databaseName = 'MySMS'
 
 # SAS token
