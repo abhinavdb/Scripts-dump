@@ -1,14 +1,14 @@
 SELECT TOP 100 * FROM ExecutionLog2
-where ReportPath like '%DI00004%' -- put report name here
+where ReportPath like '%<REPORT_NAME>%' -- put report name here
 ORDER BY TimeStart DESC 
 
 SELECT TOP 100 * FROM ExecutionLog2
-where ReportPath like '%EE00051A%' -- put report name here
+where ReportPath like '%<REPORT_NAME>%' -- put report name here
 ORDER BY TimeStart DESC 
 
 
 
-use ReportServer2k8
+use <REPORT_SERVER>
 go
 
  SELECT S.ScheduleID AS SQLAgent_Job_Name
@@ -19,10 +19,10 @@ go
  FROM ReportSchedule RS JOIN Schedule S ON RS.ScheduleID = S.ScheduleID
       JOIN Subscriptions SUB ON RS.SubscriptionID = SUB.SubscriptionID
       JOIN Catalog C ON RS.ReportID = C.ItemID AND SUB.Report_OID = C.ItemID
- WHERE  SUB.Description='Send e-mail to dave.rose@integralife.com'
+ WHERE  SUB.Description='Send e-mail to user@example.com'
 
 
-use ReportServer2k8
+use <REPORT_SERVER>
 go
 select * from dbo.Subscriptions where LastStatus='Pending'
 
@@ -48,16 +48,16 @@ SELECT    b.name AS JobName
             , LastRunTime
             , date_created
             , date_modified
-FROM  ReportServer2k8.dbo.ReportSchedule   a
+FROM  <REPORT_SERVER>.dbo.ReportSchedule   a
 JOIN  msdb.dbo.sysjobs b 
       ON cast(a.ScheduleID as varchar(255)) = b.name
-JOIN  ReportServer2k8.dbo.ReportSchedule c
+JOIN  <REPORT_SERVER>.dbo.ReportSchedule c
       ON b.name = CAST(c.ScheduleID AS VARCHAR(255))
 JOIN             
-      (select eventtype,laststatus,LastRunTime,d.SubscriptionID,d.description, cast(d.report_oid as varchar(255)) report_oid from  ReportServer2k8.dbo.Subscriptions d  ) d 
+      (select eventtype,laststatus,LastRunTime,d.SubscriptionID,d.description, cast(d.report_oid as varchar(255)) report_oid from  <REPORT_SERVER>.dbo.Subscriptions d  ) d 
        on c.SubscriptionID = d.SubscriptionID
 JOIN
-      (select e.name, e.path, cast(e.itemid as varchar(255)) itemid from ReportServer2k8.dbo.Catalog e   ) e 
+      (select e.name, e.path, cast(e.itemid as varchar(255)) itemid from <REPORT_SERVER>.dbo.Catalog e   ) e 
       on itemid = report_oid where d.SubscriptionID='63948902-5888-4AE9-B4FF-6F5A40A29DC2'--- put subscription here
 
 
