@@ -24,4 +24,4 @@ CROSS APPLY sys.dm_exec_query_plan(dm_exec_query_stats.plan_handle)
 
 INNER JOIN sys.databases
 
-ON dm_exec_sql_text.dbid = databases.database_id where databases.name='WMSPROD01' AND dm_exec_sql_text.text like'%select min(native_nam)%'
+ON dm_exec_sql_text.dbid = databases.database_id where databases.name='<DATABASE_NAME>' AND dm_exec_sql_text.text like'%select min(native_nam)%'
