@@ -5,7 +5,7 @@ DECLARE @Date AS NVARCHAR(25)
     ,@SASKey AS VARCHAR(MAX)
     ,@DatabaseName AS SYSNAME;
 SELECT @Date = REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(VARCHAR, GETDATE(), 100), '  ', '_'), ' ', '_'), '-', '_'), ':', '_');
-SELECT @StorageAccountName = 'omniqaeastusdbstr'; --- Find this from Azure Portal
+SELECT @StorageAccountName = '<STORAGE_ACCOUNT>'; --- Find this from Azure Portal
 SELECT @ContainerName = 'omnidatabase'; --- Find this from Azure Portal
 SELECT @SASKey = '<REDACTED_SAS_TOKEN>'; --- Find this from Azure Portal
 SELECT @DatabaseName = 'master';
@@ -29,8 +29,8 @@ EXEC (@TSQL)
 
 
 EXECUTE dbo.DatabaseBackup
-@Databases = 'PCSW30',
-@URL ='https://omniqaeastusdbstr.blob.core.windows.net/testcontainer',
+@Databases = '<DATABASE_NAME>',
+@URL ='https://<STORAGE_ACCOUNT>.blob.core.windows.net/testcontainer',
 @BackupType = 'FULL',
 @CheckSum = 'Y',
 @Compress = 'Y',
@@ -39,8 +39,8 @@ EXECUTE dbo.DatabaseBackup
 
 
 EXECUTE dbo.DatabaseBackup
-@Databases = 'PCSW30',
-@URL ='https://omniqaeastusdbstr.blob.core.windows.net/testcontainer',
+@Databases = '<DATABASE_NAME>',
+@URL ='https://<STORAGE_ACCOUNT>.blob.core.windows.net/testcontainer',
 @BackupType = 'LOG',
 @CheckSum = 'Y',
 @Compress = 'Y',
