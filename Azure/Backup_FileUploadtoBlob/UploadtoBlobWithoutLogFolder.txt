@@ -2,8 +2,8 @@
 
 $storageAccountName = "backupfullltrcontainer"
 $containerName = "backupltrfull"
-$sourceRootFolder = "F:\SQLBackup\aznetpocdbs01"
-$destinationBlobPrefix = "aznetpocdbs01"
+$sourceRootFolder = "F:\SQLBackup\<SERVER_NAME>"
+$destinationBlobPrefix = "<SERVER_NAME>"
 $sasToken = "<REDACTED_SAS_TOKEN>"
 
 # Import the Azure.Storage module
