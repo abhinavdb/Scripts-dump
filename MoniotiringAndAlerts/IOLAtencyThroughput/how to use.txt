@@ -9,12 +9,12 @@ These collection are running at host level to get the actual physical disk infor
 -nRate is in seconds
 -nSamples: Number of samples we want, so these two together can decide how long we want data collection to happen
 
-c:> perf_counter_measure_performance.ps1 -HostName DESKTOP-FH2D9SA -nSamples 5761 -nRate 15 > output_file.txt
+c:> perf_counter_measure_performance.ps1 -HostName <SERVER_NAME> -nSamples 5761 -nRate 15 > output_file.txt
 
 Best is to put the above script in SQL job, so that it can be started and we dont have to keep the powershell window open for data collection.
 
 SQL Job script
-C:\WINDOWS\system32\windowspowershell\v1.0\powershell.exe D:\IOCapture\perf_counter_measure_performance.ps1 -HostName SQLDBAUP025 -nSamples 23040 -nRate 15 > D:\IOCapture\output_file.txt
+C:\WINDOWS\system32\windowspowershell\v1.0\powershell.exe D:\IOCapture\perf_counter_measure_performance.ps1 -HostName <SERVER_NAME> -nSamples 23040 -nRate 15 > D:\IOCapture\output_file.txt
 
 3) create a table using below script in DBAutility database.
 
