@@ -1,5 +1,5 @@
 **********************************************************************************************
-USE TSTCSW04     ----- change db name for which you waant to fix orphan users issue
+USE <DATABASE_NAME>     ----- change db name for which you waant to fix orphan users issue
 
 GO
 
