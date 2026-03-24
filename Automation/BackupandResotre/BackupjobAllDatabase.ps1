@@ -2,7 +2,7 @@
 $databases = @("MySMSConversations",) # Add database names here
 
 foreach ($databaseName in $databases) {
-    $sourceDir = "\\aznetpocdbs01\SQLBackup\"
+    $sourceDir = "\\<SERVER_NAME>\SQLBackup\"
     $destDir = "D:\Backup\$databaseName"
     $timeLimit = (Get-Date).AddMinutes(-60)
 
