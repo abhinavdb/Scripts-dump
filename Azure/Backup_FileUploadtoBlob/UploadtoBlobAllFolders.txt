@@ -1,7 +1,7 @@
 $storageAccountName = "backupfullltrcontainer"
 $containerName = "backupltrfull"
 $sourceRootFolder = "F:\SQLBackup\mysmstrans"
-$destinationBlobPrefix = "aznetpocdbs01"
+$destinationBlobPrefix = "<SERVER_NAME>"
 $sasToken = "<REDACTED_SAS_TOKEN>"
 
 # Import the Azure.Storage module
