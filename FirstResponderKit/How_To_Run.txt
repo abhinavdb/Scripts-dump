@@ -58,17 +58,38 @@ EXEC sp_WhoIsActive
   @show_sleeping_spids = 0                      -- Set to 1 to include sleeping sessions with open transactions.
 
 
--- Log sp_whoisactive
-declare @definition varchar(max)
-exec sp_WhoIsActive @return_schema = 1, @schema = @definition output
-print @definition
+-- Log sp_whoisactive -------------------------
+USE DBAAdmin;
+GO
 
+DECLARE @schema NVARCHAR(MAX);
 
+EXEC sp_WhoIsActive 
+    @get_plans = 1,
+    @get_task_info = 2,
+    @show_sleeping_spids = 0,
+    @return_schema = 1, 
+    @schema = @schema OUTPUT;
 
-CREATE TABLE WhoIsActive_log ( [dd hh:mm:ss.mss] varchar(8000) NULL,[session_id] smallint NOT NULL,[sql_text] xml NULL,[login_name] nvarchar(128) NOT NULL,[wait_info] nvarchar(4000) NULL,[CPU] varchar(30) NULL,[tempdb_allocations] varchar(30) NULL,[tempdb_current] varchar(30) NULL,[blocking_session_id] smallint NULL,[reads] varchar(30) NULL,[writes] varchar(30) NULL,[physical_reads] varchar(30) NULL,[used_memory] varchar(30) NULL,[status] varchar(30) NOT NULL,[open_tran_count] varchar(30) NULL,[percent_complete] varchar(30) NULL,[host_name] nvarchar(128) NULL,[database_name] nvarchar(128) NULL,[program_name] nvarchar(128) NULL,[start_time] datetime NOT NULL,[login_time] datetime NULL,[request_id] int NULL,[collection_time] datetime NOT NULL);
+SET @schema = REPLACE(@schema, N'<table_name>', N'dbo.WhoIsActive_Log');
 
+-- Drop if exists
+IF OBJECT_ID(N'dbo.WhoIsActive_Log', N'U') IS NOT NULL
+    DROP TABLE dbo.WhoIsActive_Log;
 
-exec sp_WhoIsActive @destination_table='WhoIsActive_log'
+EXEC (@schema);
+GO
+
+-- Test it
+EXEC sp_WhoIsActive 
+    @get_plans = 1,
+    @get_task_info = 2,
+    @show_sleeping_spids = 0,
+    @destination_table = N'dbo.WhoIsActive_Log';
+GO
+
+SELECT * FROM dbo.WhoIsActive_Log;
+GO
 
 
 
