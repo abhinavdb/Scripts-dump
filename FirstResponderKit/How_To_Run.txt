@@ -91,7 +91,16 @@ GO
 SELECT * FROM dbo.WhoIsActive_Log;
 GO
 
+****************** How to check CPU******************************
 
+EXEC sp_WhoIsActive 
+    @get_task_info       = 2,
+    @get_additional_info = 1,
+    @get_locks           = 1,
+    @get_plans           = 1,
+    @delta_interval      = 5,
+    @sort_order          = '[CPU_delta] DESC',
+    @show_sleeping_spids = 0;
 
 ================================================================================================================================
 FASTER GUNS
